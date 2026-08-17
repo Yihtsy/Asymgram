@@ -1,6 +1,10 @@
-# asymgram
+# Asymgram
 
-`asymgram` is a small Python toolkit for working with CoNLL-U dependency treebanks. It wraps parsed CoNLL-U tokens and sentences with convenient object references, provides tree manipulation helpers, evaluates dependency parses, and includes diagnostics for common annotation and format errors.
+**Asymgram** stands for **Asymmetrency Grammar**, a syntactic framework under development that is closely related to dependency grammar. The framework is designed to support syntactic annotation, manipulation, and structural analysis of dependency-based linguistic data.
+
+The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers).
+
+The Python package `asymgram` is a small toolkit for working with CoNLL-U dependency treebanks. It wraps parsed CoNLL-U tokens and sentences with convenient object references, provides tree manipulation helpers, evaluates dependency parses, and includes diagnostics for common annotation and format errors.
 
 The package is designed for corpus linguistics, dependency grammar research, Universal Dependencies style treebank work, and quick inspection of parser output.
 
