@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asymgram"
+version = "0.1.0"
+description = "Utilities for CoNLL-U dependency tree objects, manipulation, evaluation, and error checking."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Tsy Yih", email = "yihtsy@outlook.com" }
+]
+keywords = [
+  "CoNLL-U",
+  "Universal Dependencies",
+  "dependency grammar",
+  "dependency parsing",
+  "corpus linguistics",
+  "treebank"
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Text Processing :: Linguistic"
+]
+dependencies = [
+  "conllu>=6.0"
+]
+
+[project.optional-dependencies]
+nlp = [
+  "spacy>=3.0",
+  "spacy-stanza>=1.0",
+  "stanza>=1.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Yihtsy/asymgram"
+Repository = "https://github.com/Yihtsy/asymgram"
+Issues = "https://github.com/Yihtsy/asymgram/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+asymgram = ["sample/*.conllu"]

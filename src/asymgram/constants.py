@@ -26,13 +26,14 @@ CORE_DEPRELS = (
     "obl",      # oblique nominal
     "vocative", # vocative
     "expl",     # expletive
-    "dislocated", 
+    "dislocated",  # dislocated elements (topic, afterthoughts)
+    # "list",     # list
     "advcl",    # adverbial clause
     "advmod",   # adverbial modifier
-    "discourse", 
+    "discourse",  # discourse particle
     "aux",      # auxiliary
     "cop",      # copula
-    "mark",     # marker
+    "mark",     # marker (subordinating conjunction)
     "nmod",     # nominal modifier
     "amod",     # adjectival modifier
     "appos",    # apposition
@@ -42,28 +43,30 @@ CORE_DEPRELS = (
     "compound", # compound
     "conj",     # conjunct
     "cc",       # coordinating conjunction
-    "parataxis",
-    "punct",
-    "root",
-    "ccomp",
-    "xcomp"
+    "parataxis", # sentence coordination
+    "punct", # punctuation
+    "root", # root node
+    "ccomp", # clausal complement
+    "xcomp" # non-finite clausal complement
 )
 
+# nominal argument relations
 NOMINAL_ARGUMENTS = ("nsubj", "obj", "iobj", "obl")
 
-# 状语修饰
-ADVERBIAL_DEPRELS = {"advcl", "advmod", "obl"}
+# adverbial relations
+ADVERBIAL_DEPRELS = ("advcl", "advmod", "obl")
 
-# 标点
-PUNCTUATION_DEPRELS = {"punct"}
+# punctuation relation
+PUNCTUATION_DEPRELS = ("punct")
 
-# 句法连接
-COORDINATION_DEPRELS = {"conj", "cc", "parataxis"}
+# coordination-related relations
+COORDINATION_DEPRELS = ("conj", "cc", "parataxis")
 
-# 附加修饰
-MODIFIERS = {"amod", "nmod", "compound", "det", "case", "clf", "appos"}
+# ad-modifier relations
+MODIFIERS = ("amod", "nmod", "compound", "det", "case", "clf", "appos")
 
-# 功能词
-FUNCTIONAL_DEPRELS = {"aux", "cop", "mark"}
+# functional relations
+FUNCTIONAL_DEPRELS = ("aux", "cop", "mark")
 
-MULTIWORD_EXPRESSIONS = {"flat", "fixed", "compound"}
+# multiword expressions
+MULTIWORD_EXPRESSIONS = ("flat", "fixed", "compound")
