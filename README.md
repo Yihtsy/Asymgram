@@ -1,3 +1,15 @@
+<p align="center">
+  <img src="assets/asymgram-logo.png" alt="Asymgram logo" width="720">
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/asymgram/"><img alt="Release" src="https://img.shields.io/pypi/v/asymgram.svg?label=release"></a>
+  <a href="https://pypi.org/project/asymgram/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/asymgram.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
+  <a href="https://pypi.org/project/asymgram/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/asymgram.svg?label=downloads"></a>
+  <a href="https://github.com/Yihtsy/asymgram/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Yihtsy/asymgram.svg?label=issues"></a>
+</p>
+
 # Asymgram
 
 **Asymgram** stands for **Asymmetrency Grammar**, a syntactic framework under development that is closely related to dependency grammar. The framework is designed to support syntactic annotation, manipulation, and structural analysis of dependency-based linguistic data.
@@ -11,9 +23,10 @@ The package is designed for corpus linguistics, dependency grammar research, Uni
 ## Features
 
 - Enhanced CoNLL-U objects: `Token`, `TokenList`, `SentenceList`, and `SentenceLists`.
-- Context-aware token navigation, including head lookup, dependent lookup, subtree span extraction, and node depth.
+- Context-aware token navigation, including head lookup, dependent lookup, sibling lookup, subtree span extraction, and node depth.
+- Structural unit and tree-query helpers for strings, catenae, components, constituents, phrases, connectedness, projectivity, crossing dependencies, heads, children, siblings, dependent subtrees, and clause-type extraction.
 - Sentence and token manipulation helpers for merging tokens, splitting tokens, removing leaf nodes, merging sentences, and splitting sentences at marginal subtrees.
-- Basic dependency evaluation metrics: UAS and LAS.
+- Node- and corpus-level metrics, including dependency distance, directional dependency distance, hierarchy level, tree depth, sentence length, frequency tables, UAS, and LAS.
 - CoNLL-U readers, writers, text reconstruction, and simple conversion helpers.
 - Error checking for common CoNLL-U and dependency treebank issues, including invalid IDs, malformed HEAD values, self-loops, cycles, missing roots, multiple roots, invalid UPOS/DEPREL labels, malformed FEATS/DEPS, punctuation mismatches, and suspicious UPOS-DEPREL combinations.
 
@@ -58,6 +71,41 @@ root = sentence.get_roottoken()
 print(root.form)
 print([tok.form for tok in root.get_deptokens(include_punct=True)])
 print(sentences.to_tokenized_text())
+```
+
+
+## Structural Queries
+
+`asymgram` includes helpers for dependency-grammar structural units and node relations.
+
+```python
+import asymgram as ag
+
+sent = sentences[0]
+
+# Generic structural units
+ag.is_string(sent, [1, 2])
+ag.is_catena(sent, [3, 6])
+ag.is_component(sent, [1, 2])
+ag.is_constituent(sent, [4, 5, 6])
+ag.is_phrase(sent, [4, 5, 6])
+
+# Tree-level checks
+ag.is_connected_tree(sent)
+ag.is_projective_tree(sent)
+ag.has_crossing_dependencies(sent)
+
+# Node relations and metrics
+node = ag.resolve_token(sent, "saw")
+head = ag.get_head(sent, node)
+children = ag.get_children(sent, node)
+siblings = ag.get_siblings(sent, node)
+metrics = ag.node_metrics(sent, node)
+
+# Phrase and clause extraction
+vp_text = ag.extract_verb_phrase(sent, node, as_text=True)
+clause_type = ag.clause_type_for_node(sent, node)
+main_clause = ag.extract_main_clause(sent, node, as_text=True)
 ```
 
 ## Error Checking
