@@ -14,7 +14,9 @@
 
 **Asymgram** stands for **Asymmetrency Grammar**, a syntactic framework under development that is closely related to dependency grammar. The framework is designed to support syntactic annotation, manipulation, and structural analysis of dependency-based linguistic data.
 
-<!-- The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers), also known as AG.AL, appearing at Esports World Cup (EWC). -->
+<!-- The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers), also known as AG.AL, champion of Esports World Cup (EWC) 2026. -->
+
+<!-- The logo depicts a directional relation from A to G and its inverse from G to A, representing the core idea of Asymmetry Grammar. The upper arrow is inspired by the Silver Dragon championship trophy (银龙杯), while the lower arrow evokes Han Xin (韩信)’s spear or the blade of Mingdao Siming (名刀司命). -->
 
 The Python package `asymgram` is a small toolkit for working with CoNLL-U dependency treebanks. It wraps parsed CoNLL-U tokens and sentences with convenient object references, provides tree manipulation helpers, evaluates dependency parses, and includes diagnostics for common annotation and format errors.
 
