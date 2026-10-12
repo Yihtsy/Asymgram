@@ -1,11 +1,79 @@
 import os
-from conllu import SentenceList as BaseSentenceList
+import numpy as np
 from typing import Optional, Union, List, Iterator
+from collections import Counter, OrderedDict
+from conllu import SentenceList as BaseSentenceList
 from conllu.models import TokenList as BaseTokenList, Token as BaseToken
 from conllu.models import Metadata
 from conllu import parse as base_parse
 from conllu import parse_incr as base_parse_incr
-from collections import Counter, OrderedDict
+
+CONLLU_COLUMNS = ("id", "form", "lemma", "upos", "xpos", "feats", "head", "deprel", "deps", "misc")
+CONLLUB_COLUMNS = ("id", "form", "upos", "head", "deprel")
+CONLLUC_COLUMNS = ("id", "form", "head")
+
+
+def _standard_token_dict(values: dict) -> dict:
+    return {
+        "id": values.get("id"),
+        "form": values.get("form", "_"),
+        "lemma": values.get("lemma", "_"),
+        "upos": values.get("upos", "_"),
+        "xpos": values.get("xpos", "_"),
+        "feats": values.get("feats", "_"),
+        "head": values.get("head", "_"),
+        "deprel": values.get("deprel", "_"),
+        "deps": values.get("deps", "_"),
+        "misc": values.get("misc", "_"),
+    }
+
+
+def _format_subset_value(value) -> str:
+    if value is None:
+        return "_"
+    if isinstance(value, tuple) and len(value) == 3:
+        return f"{value[0]}{value[1]}{value[2]}"
+    if isinstance(value, dict):
+        if not value:
+            return "_"
+        return "|".join(f"{key}={value[key]}" for key in sorted(value))
+    if isinstance(value, list):
+        if not value:
+            return "_"
+        return "|".join(f"{head}:{deprel}" for deprel, head in value)
+    return str(value)
+
+
+class HeadVector(np.ndarray):
+    """
+    LAL-style head sequence for ordinary word tokens.
+
+    Each array item is the head of one ordinary word token. The root token is
+    represented by 0 at its own position; no extra artificial root item is added.
+    """
+
+    def __new__(cls, data, metadata: Optional[dict] = None):
+        obj = np.asarray(data, dtype=int).view(cls)
+        obj.metadata = metadata or {}
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self.metadata = getattr(obj, "metadata", {})
+
+    @classmethod
+    def from_tokenlist(cls, tokenlist: "TokenList") -> "HeadVector":
+        heads = [
+            token.get("head", 0)
+            for token in tokenlist
+            if isinstance(token.get("id"), int)
+        ]
+        return cls(heads, metadata=dict(getattr(tokenlist, "metadata", {})))
+
+    def to_lal(self) -> list[int]:
+        """Return the plain Python list expected by LAL-style APIs."""
+        return self.astype(int).tolist()
 
 class Token(BaseToken):
     """
@@ -27,6 +95,9 @@ class Token(BaseToken):
             return self[key]
         except KeyError:
             raise AttributeError(f"'Token' object has no attribute '{key}'")
+
+    def __str__(self):
+        return self["form"]
 
     def set_tokenlist(self, tokenlist: "TokenList") -> None:
         if not isinstance(tokenlist, TokenList):
@@ -198,6 +269,28 @@ class Token(BaseToken):
             raise ValueError("Token is not associated with a TokenList.")
         return all(tok.headtoken != self for tok in self.tokenlist if isinstance(tok.get("id"), int))
 
+    def get_level(self) -> int:
+        """
+        Return the depth level of this token in the dependency tree.
+        Adds cycle detection to prevent infinite loops.
+        """
+        level = 0
+        current = self
+        visited_ids = set()
+        while True:
+            head_token = current.get_headtoken()
+            if head_token is None:
+                break
+            if head_token.id in visited_ids:
+                raise ValueError(
+                    f"Infinite loop detected while tracing heads for token {self.position()}. "
+                    f"Cycle or disconnected tree may exist."
+                )
+            visited_ids.add(head_token.id)
+            level += 1
+            current = head_token
+        return level
+
 class TokenList(BaseTokenList):
     """
     Enhanced TokenList that wraps enhanced Token objects (with tokenlist references).
@@ -356,6 +449,57 @@ class TokenList(BaseTokenList):
     def to_text(self):
         return self.metadata.get("text")
 
+
+    def to_conllub(self) -> "ConlluBasicTokenList":
+        """Return a CoNLL-U Basic view of this sentence."""
+        return ConlluBasicTokenList([_standard_token_dict(dict(token)) for token in self], metadata=dict(self.metadata))
+
+    def to_conlluc(self) -> "ConlluCoreTokenList":
+        """Return a CoNLL-U Core view of this sentence."""
+        return ConlluCoreTokenList([_standard_token_dict(dict(token)) for token in self], metadata=dict(self.metadata))
+
+    def to_head_vector(self) -> HeadVector:
+        """Return the ordinary word-token HEAD sequence."""
+        return HeadVector.from_tokenlist(self)
+
+
+class _ConlluSubsetTokenList(TokenList):
+    subset_columns = CONLLU_COLUMNS
+
+    def to_tokenlist(self) -> TokenList:
+        return TokenList([_standard_token_dict(dict(token)) for token in self], metadata=dict(self.metadata))
+
+    def serialize(self) -> str:
+        lines = []
+        for key, value in self.metadata.items():
+            lines.append(f"# {key} = {value}")
+        for token in self:
+            row = [
+                _format_subset_value(token.get(column))
+                for column in self.subset_columns
+            ]
+            lines.append("\t".join(row))
+        return "\n".join(lines) + "\n\n"
+
+
+class ConlluBasicTokenList(_ConlluSubsetTokenList):
+    """CoNLL-U Basic sentence: ID, FORM, UPOS, HEAD, DEPREL."""
+
+    subset_columns = CONLLUB_COLUMNS
+
+    def to_conlluc(self) -> "ConlluCoreTokenList":
+        return ConlluCoreTokenList([_standard_token_dict(dict(token)) for token in self], metadata=dict(self.metadata))
+
+
+class ConlluCoreTokenList(_ConlluSubsetTokenList):
+    """CoNLL-U Core sentence: ID, FORM, HEAD."""
+
+    subset_columns = CONLLUC_COLUMNS
+
+    def to_conllub(self) -> ConlluBasicTokenList:
+        return ConlluBasicTokenList([_standard_token_dict(dict(token)) for token in self], metadata=dict(self.metadata))
+
+
 class SentenceList(BaseSentenceList):
     """
     An extended version of conllu.SentenceList with added methods.
@@ -404,6 +548,18 @@ class SentenceList(BaseSentenceList):
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(self.serialize())
 
+    def to_conllub(self) -> "ConlluBasicSentenceList":
+        """Return a CoNLL-U Basic view of this sentence list."""
+        return ConlluBasicSentenceList([sentence.to_conllub() for sentence in self], metadata=dict(self.metadata))
+
+    def to_conlluc(self) -> "ConlluCoreSentenceList":
+        """Return a CoNLL-U Core view of this sentence list."""
+        return ConlluCoreSentenceList([sentence.to_conlluc() for sentence in self], metadata=dict(self.metadata))
+
+    def to_head_vectors(self) -> list[HeadVector]:
+        """Return one HeadVector per sentence."""
+        return [sentence.to_head_vector() for sentence in self]
+
     def to_text(self, line_by_line: bool = False) -> str:
         """
         Convert the SentenceList to plain text using metadata['text'] if available,
@@ -450,6 +606,43 @@ class SentenceList(BaseSentenceList):
             tokens = [tok["form"] for tok in sentence if isinstance(tok["id"], int)]
             lines.append(" ".join(tokens))
         return "\n".join(lines)
+
+
+class _ConlluSubsetSentenceList(SentenceList):
+    tokenlist_class = _ConlluSubsetTokenList
+    subset_columns = CONLLU_COLUMNS
+
+    def serialize(self) -> str:
+        lines = []
+        for key, value in self.metadata.items():
+            lines.append(f"# {key} = {value}")
+        lines.append("# global.columns = " + " ".join(column.upper() for column in self.subset_columns))
+        for sentence in self:
+            lines.append(sentence.serialize().strip() + "\n")
+        return "\n".join(lines)
+
+    def to_tokenlist(self) -> SentenceList:
+        return SentenceList([sentence.to_tokenlist() for sentence in self], metadata=dict(self.metadata))
+
+
+class ConlluBasicSentenceList(_ConlluSubsetSentenceList):
+    """CoNLL-U Basic sentence list: ID, FORM, UPOS, HEAD, DEPREL."""
+
+    tokenlist_class = ConlluBasicTokenList
+    subset_columns = CONLLUB_COLUMNS
+
+    def to_conlluc(self) -> "ConlluCoreSentenceList":
+        return ConlluCoreSentenceList([sentence.to_conlluc() for sentence in self], metadata=dict(self.metadata))
+
+
+class ConlluCoreSentenceList(_ConlluSubsetSentenceList):
+    """CoNLL-U Core sentence list: ID, FORM, HEAD."""
+
+    tokenlist_class = ConlluCoreTokenList
+    subset_columns = CONLLUC_COLUMNS
+
+    def to_conllub(self) -> ConlluBasicSentenceList:
+        return ConlluBasicSentenceList([sentence.to_conllub() for sentence in self], metadata=dict(self.metadata))
 
 class SentenceLists(list):
     """

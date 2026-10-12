@@ -1,3 +1,18 @@
+# asymgram 0.2.0
+
+Feature release with expanded treebank manipulation, scheme-conversion, syntax-query, subcorpus, and reporting support.
+
+## Highlights
+
+- Added compact syntax-query APIs: `SyntaxQuery`, `compile_syntax_query()`, `match_syntax_tokens()`, `sentence_matches_syntax()`, and `find_syntax_matches()`.
+- Added subcorpus extraction APIs: `filter_sentences()`, `extract_subcorpus()`, and `write_subcorpus()`.
+- Added Python rule-based scheme-conversion APIs: `ud_to_sud()`, `sud_to_ud()`, `convert_ud_to_sud()`, and `convert_sud_to_ud()` for core function-dependent/function-head alternations.
+- Expanded treebank manipulation helpers for non-word line removal, token insertion, empty-node insertion, punctuation normalization, edge-punctuation removal, hyphenated-compound merging, and sentence-sequence merging.
+- Restored and integrated newer local conversion helpers for CHAT, XML corpus input, ConLLUB/ConLLUC output, sentence lookup, and token-position lookup.
+- Added language-specific postprocessing and analysis-sequence APIs: `apply_postprocess_profile()`, `postprocess_zh_stanza()`, `postprocess_zh_tokenized_text()`, `AnalysisSequence`, and related comparison/read/write helpers.
+- Preserved newer CoNLL-U diagnostic reporting with `generate_error_report()` and `generate_summary_report()`, while adding `generate_analysis_report()` as a compatibility alias.
+- Added structural-unit and tree-query APIs developed after `0.1.0`, including catena/component/constituent/phrase/clause iteration and counting.
+
 # asymgram 0.1.0
 
 Initial public release of `asymgram`.

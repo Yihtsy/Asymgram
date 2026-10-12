@@ -14,9 +14,7 @@
 
 **Asymgram** stands for **Asymmetrency Grammar**, a syntactic framework under development that is closely related to dependency grammar. The framework is designed to support syntactic annotation, manipulation, and structural analysis of dependency-based linguistic data.
 
-<!-- The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers), also known as AG.AL, champion of Esports World Cup (EWC) 2026. -->
-
-<!-- The logo depicts a directional relation from A to G and its inverse from G to A, representing the core idea of Asymmetry Grammar. The upper arrow is inspired by the Silver Dragon championship trophy (银龙杯), while the lower arrow evokes Han Xin (韩信)’s spear or the blade of Mingdao Siming (名刀司命). -->
+The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers).
 
 The Python package `asymgram` is a small toolkit for working with CoNLL-U dependency treebanks. It wraps parsed CoNLL-U tokens and sentences with convenient object references, provides tree manipulation helpers, evaluates dependency parses, and includes diagnostics for common annotation and format errors.
 
@@ -27,9 +25,12 @@ The package is designed for corpus linguistics, dependency grammar research, Uni
 - Enhanced CoNLL-U objects: `Token`, `TokenList`, `SentenceList`, and `SentenceLists`.
 - Context-aware token navigation, including head lookup, dependent lookup, sibling lookup, subtree span extraction, and node depth.
 - Structural unit and tree-query helpers for strings, catenae, components, constituents, phrases, connectedness, projectivity, crossing dependencies, heads, children, siblings, dependent subtrees, and clause-type extraction.
-- Sentence and token manipulation helpers for merging tokens, splitting tokens, removing leaf nodes, merging sentences, and splitting sentences at marginal subtrees.
+- Query syntax and subcorpus extraction helpers for finding syntactic patterns and writing filtered CoNLL-U subsets.
+- Sentence and token manipulation helpers for merging tokens, splitting tokens, inserting tokens, removing non-word lines, removing leaf nodes, merging sentences, and splitting sentences at marginal subtrees.
+- Python rule-based scheme conversion helpers for UD-style function-dependent structures and SUD-style function-head structures.
 - Node- and corpus-level metrics, including dependency distance, directional dependency distance, hierarchy level, tree depth, sentence length, frequency tables, UAS, and LAS.
-- CoNLL-U readers, writers, text reconstruction, and simple conversion helpers.
+- CoNLL-U readers, writers, text reconstruction, CHAT-to-CoNLL-U conversion, XML corpus conversion, and compact CoNLL-U subset formats such as ConLLUB and ConLLUC.
+- Language-specific postprocessing profiles and analysis-sequence helpers for documenting parser/treebank analysis pipelines.
 - Error checking for common CoNLL-U and dependency treebank issues, including invalid IDs, malformed HEAD values, self-loops, cycles, missing roots, multiple roots, invalid UPOS/DEPREL labels, malformed FEATS/DEPS, punctuation mismatches, and suspicious UPOS-DEPREL combinations.
 
 ## Installation
@@ -110,12 +111,53 @@ clause_type = ag.clause_type_for_node(sent, node)
 main_clause = ag.extract_main_clause(sent, node, as_text=True)
 ```
 
+## Syntax Queries And Subcorpora
+
+Use a compact query syntax to find matching tokens or extract matching sentences.
+
+```python
+import asymgram as ag
+
+sentences = ag.read_conllu("treebank.conllu")
+
+roots = ag.find_syntax_matches(sentences, "upos=VERB deprel=root")
+relative_clause_sentences = ag.extract_subcorpus(
+    sentences,
+    "clause_type=relative_clause",
+)
+
+ag.write_subcorpus(
+    sentences,
+    "relative-clauses.conllu",
+    query="clause_type=relative_clause",
+)
+```
+
+## Scheme Conversion
+
+`asymgram` includes direct Python rules for converting selected UD-style function-dependent analyses into SUD-style function-head analyses. The current core covers `case`, `aux`, `aux:pass`, `mark`, and `cop`; no GRS files or GRS interpreter are bundled.
+
+```python
+import asymgram as ag
+
+sentences = ag.read_conllu("treebank.conllu")
+
+# Convert only adpositional case structures.
+sud_like = ag.ud_to_sud(sentences, target_deprels=("case",))
+
+# Convert a file; the default output is treebank.sud.conllu.
+ag.ud_to_sud("treebank.conllu", target_deprels=("case",))
+
+# Restore the same class of structures back to UD style.
+ud_style = ag.sud_to_ud(sud_like, target_deprels=("case",))
+```
+
 ## Error Checking
 
 `asymgram.error_checker` can inspect raw CoNLL-U text, files, parsed sentences, or sentence lists.
 
 ```python
-from asymgram.error_checker import check_conllu_text, check_file
+from asymgram.error_checker import check_conllu_text, check_file, generate_error_report, generate_summary_report
 
 diagnostics = check_conllu_text(text)
 
@@ -123,6 +165,8 @@ for diagnostic in diagnostics:
     print(diagnostic.level, diagnostic.code, diagnostic.sent_id, diagnostic.token_id, diagnostic.message)
 
 file_diagnostics = check_file("treebank.conllu")
+error_report = generate_error_report("treebank.conllu", "treebank-error-report.md")
+summary_report = generate_summary_report("treebank.conllu", "treebank-summary.md")
 ```
 
 Each diagnostic is represented by a `Diagnostic` object:
@@ -141,7 +185,8 @@ Diagnostic levels are:
 
 - `ERROR`: structural or format problems that are usually automatically decidable.
 - `WARNING`: strong annotation warnings that should be manually checked.
-- `INFO`: low-frequency or linguistically atypical patterns that may still be valid.
+
+`generate_error_report()` focuses on diagnostics and review candidates. `generate_summary_report()` is for descriptive corpus statistics such as UPOS, DEPREL, root-UPOS, and UPOS-DEPREL frequency tables.
 
 ## Common APIs
 
@@ -151,6 +196,9 @@ import asymgram as ag
 sentences = ag.read_conllu("sample.conllu")
 sentences.to_conllu("copy.conllu")
 
+sentence = ag.get_sentence_by_id(sentences, "demo-1")
+token = ag.get_token_by_position(sentence, 2)
+
 root = sentences[0].get_roottoken()
 children = root.get_deptokens()
 span = root.get_subtree_span()
@@ -159,10 +207,25 @@ uas = ag.uas(gold_sentences, predicted_sentences)
 las = ag.las(gold_sentences, predicted_sentences)
 ```
 
+## Conversion And Postprocessing
+
+```python
+import asymgram as ag
+
+sentences = ag.corpus_xml_file_to_sentencelist("corpus.xml", profile="generic")
+sentences = ag.add_stanza_syntax(sentences, lang="zh")
+
+profiles = ag.available_postprocess_profiles()
+refined = ag.apply_postprocess_profile(sentences, profile="zh_stanza_default")
+
+sequence = ag.read_analysis_sequence("profiles/zh_ud_gsdsimp_2_18.json")
+comparison = ag.compare_analysis_sequences(sequence, sequence)
+```
+
 ## Notes
 
-`asymgram` follows the CoNLL-U conventions used by Universal Dependencies, but it is not limited to official UD treebanks. Some diagnostics intentionally return warnings or info-level messages because many unusual UPOS-DEPREL combinations can be valid in ellipsis, multiword expressions, headless constructions, dates, measurements, names, and language-specific analyses.
+`asymgram` follows the CoNLL-U conventions used by Universal Dependencies, but it is not limited to official UD treebanks. Some diagnostics intentionally return warnings rather than hard errors because many unusual UPOS-DEPREL combinations can be valid in ellipsis, multiword expressions, headless constructions, dates, measurements, names, and language-specific analyses.
 
 ## License
 
-License information has not yet been specified.
+`asymgram` is released under the MIT License.
