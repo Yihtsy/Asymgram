@@ -1,10 +1,11 @@
 __title__ = 'asymmetrencygrammar'
 __author__ = 'Tsy Yih'
 __email__ = 'yihtsy@outlook.com'
-__version__ = '0.2.0'
+__version__ = '0.2.3'
 
 from .scheme_changer import (
     SUD_CORE_FUNCTION_DEPRELS,
+    SUD_EXPERIMENTAL_FUNCTION_DEPRELS,
     ud_to_sud,
     sud_to_ud,
     convert_ud_to_sud,
@@ -251,7 +252,7 @@ from .analysis_sequence import (
 )
 
 __all__ = [
-    "SUD_CORE_FUNCTION_DEPRELS", "ud_to_sud", "sud_to_ud", "convert_ud_to_sud", "convert_sud_to_ud",
+    "SUD_CORE_FUNCTION_DEPRELS", "SUD_EXPERIMENTAL_FUNCTION_DEPRELS", "ud_to_sud", "sud_to_ud", "convert_ud_to_sud", "convert_sud_to_ud",
     "CHAT_SPECIAL_SYMBOLS", "read_conllu", "read_conllu_sentence", "write_conllu", "write_conllub", "write_conlluc", "conllu_to_text", "conllu_folder2sentencelists", "load_sentence_list", "conllu_to_txt", "spacy_doc2conllu_style_text", "hanlp_doc2conllu_style_text", "cha_file_to_sentencelist", "cha_folder_to_sentencelists", "cha_reader_to_sentencelist", "corpus_xml_file_to_sentencelist", "corpus_xml_folder_to_sentencelists", "add_stanza_syntax", "extract_all_deprels", "load_sentence_lists", "stanza_doc2conllu_style_text", "conllu_to_latex_standalone",
     "Token", "TokenList", "SentenceList", "SentenceLists", "ConlluBasicTokenList", "ConlluCoreTokenList", "ConlluBasicSentenceList", "ConlluCoreSentenceList", "HeadVector", "parse", "parse_incr", "to_sentencelist",
     "merge_tokens", "merge_compounds_with_heads", "merge_fixed_expressions", "merge_flat_expressions", "merge_goeswith_tokens", "merge_hyphenated_compounds", "insert_token", "insert_empty_node", "split_token", "is_marginal_subtree", "merge_sentences", "merge_sentence_sequence", "remove_multiword_tokens", "remove_empty_nodes", "remove_punct", "remove_edge_punct", "normalize_punctuation", "remove_reparandum", "remove_discourse_interjections", "remove_subtree", "graft_subtree", "remove_leaf_node", "split_sentence_at_node", "postprocess_stanza_depparse", "convert_ud_function_dependents", "restore_ud_function_dependents",

@@ -1,4 +1,4 @@
-from .conllu import Token, TokenList, SentenceList
+from .conllu import Token, TokenList, SentenceList, SentenceLists
 from .constants import CHINESE_COMMA
 from copy import deepcopy
 from collections import deque
@@ -28,7 +28,7 @@ UD_FUNCTION_HEAD_REVERSE_PROMOTED = {
     "case": "adp",
 }
 UD_FUNCTION_HEAD_REVERSE_UPOS = {
-    "case": {"ADP"},
+    "case": {"ADP", "PART"},
     "aux": {"AUX"},
     "aux:pass": {"AUX"},
     "mark": {"SCONJ", "CCONJ", "ADV", "PART", "ADP"},
@@ -78,6 +78,35 @@ def _copy_tokenlist(tokenlist: TokenList) -> TokenList:
 
 def _copy_sentencelist(sentences: SentenceList) -> SentenceList:
     return SentenceList([_copy_tokenlist(sentence) for sentence in sentences], deepcopy(sentences.metadata))
+
+
+def _copy_sentencelists(sentence_lists: SentenceLists) -> SentenceLists:
+    return SentenceLists([_copy_sentencelist(sentences) for sentences in sentence_lists])
+
+
+def _ensure_misc_dict(token: Token) -> dict:
+    misc = token.get("misc")
+    if not isinstance(misc, dict):
+        misc = {}
+        token["misc"] = misc
+    return misc
+
+
+def _set_misc_if_absent(token: Token, key: str, value) -> None:
+    if value in {None, "_"}:
+        return
+    misc = _ensure_misc_dict(token)
+    misc.setdefault(key, str(value))
+
+
+def _pop_misc(token: Token, key: str):
+    misc = token.get("misc")
+    if not isinstance(misc, dict):
+        return None
+    value = misc.pop(key, None)
+    if not misc:
+        token["misc"] = None
+    return value
 
 
 def _replace_tokenlist_contents(target: TokenList, source: TokenList) -> TokenList:
@@ -615,6 +644,9 @@ def convert_ud_function_dependents(
             if old_head == 0:
                 promoted_deprel = "root"
 
+            # Preserve the lexical token's external relation for reversible conversion.
+            _set_misc_if_absent(lexical, "OrigDeprel", old_deprel)
+
             # The promoted function word inherits the lexical head's external role.
             top_function["head"] = old_head
             top_function["deprel"] = promoted_deprel
@@ -645,6 +677,14 @@ def convert_ud_function_dependents(
         for index, sentence in enumerate(working_sentences):
             working_sentences[index] = convert_sentence(sentence)
         return SentenceList(list(working_sentences), deepcopy(working_sentences.metadata))
+
+    if isinstance(data, SentenceLists):
+        working_sentence_lists = data if in_place else _copy_sentencelists(data)
+        for list_index, sentences in enumerate(working_sentence_lists):
+            for sentence_index, sentence in enumerate(sentences):
+                sentences[sentence_index] = convert_sentence(sentence)
+            working_sentence_lists[list_index] = SentenceList(list(sentences), deepcopy(sentences.metadata))
+        return SentenceLists(list(working_sentence_lists))
 
     working_items = data if in_place else [_copy_tokenlist(sentence) for sentence in data]
     return [convert_sentence(sentence) for sentence in working_items]
@@ -737,9 +777,10 @@ def restore_ud_function_dependents(
             function = id2token[function_id]
             old_head = function.get("head")
             old_deprel = function.get("deprel")
+            original_deprel = _pop_misc(lexical, "OrigDeprel")
 
             lexical["head"] = old_head
-            lexical["deprel"] = "root" if old_head == 0 else old_deprel
+            lexical["deprel"] = original_deprel or ("root" if old_head == 0 else old_deprel)
             function["head"] = lexical["id"]
             function["deprel"] = restored_deprel
 
@@ -761,6 +802,14 @@ def restore_ud_function_dependents(
         for index, sentence in enumerate(working_sentences):
             working_sentences[index] = restore_sentence(sentence)
         return SentenceList(list(working_sentences), deepcopy(working_sentences.metadata))
+
+    if isinstance(data, SentenceLists):
+        working_sentence_lists = data if in_place else _copy_sentencelists(data)
+        for list_index, sentences in enumerate(working_sentence_lists):
+            for sentence_index, sentence in enumerate(sentences):
+                sentences[sentence_index] = restore_sentence(sentence)
+            working_sentence_lists[list_index] = SentenceList(list(sentences), deepcopy(sentences.metadata))
+        return SentenceLists(list(working_sentence_lists))
 
     working_items = data if in_place else [_copy_tokenlist(sentence) for sentence in data]
     return [restore_sentence(sentence) for sentence in working_items]

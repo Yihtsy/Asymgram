@@ -135,21 +135,28 @@ ag.write_subcorpus(
 
 ## Scheme Conversion
 
-`asymgram` includes direct Python rules for converting selected UD-style function-dependent analyses into SUD-style function-head analyses. The current core covers `case`, `aux`, `aux:pass`, `mark`, and `cop`; no GRS files or GRS interpreter are bundled.
+As of `0.2.3`, `ud_to_sud()` and `sud_to_ud()` interpret the complete pinned universal conversion logic using the embedded Python GRS runtime and the bundled official `.grs` rules, including imported rules and lexicon files. No Grewpy, OCaml runtime, external executable, or model is required. The reference revision is `7cd14fd1a5e106c18f2ddc9a597e02fe86fddb78` from [SUD conversions](https://github.com/surfacesyntacticud/conversions).
+
+The APIs accept `TokenList`, `SentenceList`, `SentenceLists`, a file path, or a directory path. Memory inputs return copies unless `in_place=True`. File outputs default to `name.sud.conllu` or `name.ud.conllu`; directory outputs default to sibling `name_sud` or `name_ud` directories. Use `output_path` or `output_dir` to override these, `recursive=True` for subdirectories, and `overwrite=True` to replace existing files. Files preserve source comments and replace output atomically on success.
+
+These conversions are not lossless recovery of the original UD. Enhanced DEPS and empty nodes are removed, MWT rows are preserved, and reverse rules can choose a different analysis. Explicit `target_deprels=("case",)` selects the older lightweight, experimental local-alternation mode instead of the complete conversion; it is not the official SUD scheme and has no general round-trip guarantee.
 
 ```python
 import asymgram as ag
 
 sentences = ag.read_conllu("treebank.conllu")
 
-# Convert only adpositional case structures.
-sud_like = ag.ud_to_sud(sentences, target_deprels=("case",))
+# Apply the full universal UD-to-SUD conversion.
+sud_like = ag.ud_to_sud(sentences)
 
 # Convert a file; the default output is treebank.sud.conllu.
-ag.ud_to_sud("treebank.conllu", target_deprels=("case",))
+ag.ud_to_sud("treebank.conllu")
 
-# Restore the same class of structures back to UD style.
-ud_style = ag.sud_to_ud(sud_like, target_deprels=("case",))
+# Apply the full universal SUD-to-UD conversion.
+ud_style = ag.sud_to_ud(sud_like)
+
+# Convert a directory, preserving relative paths and filenames.
+ag.ud_to_sud("ud_corpus", output_dir="sud_corpus", recursive=True)
 ```
 
 ## Error Checking

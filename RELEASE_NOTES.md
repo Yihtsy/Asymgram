@@ -1,4 +1,19 @@
-# asymgram 0.2.0
+# asymgram 0.2.3
+
+- Consolidated the embedded Python GRS matcher, executor, graph adapter, and UD/SUD conversion runtime into `scheme_changer.py`.
+- Bundled the pinned official UD/SUD `.grs` rules and `.lp` lexicon resources in distribution metadata.
+- Kept compatibility shims for older private-module imports; no Grewpy, OCaml, or external executable is required.
+
+# asymgram 0.2.2
+
+- Restored complete universal UD/SUD conversion as direct Python functions, replacing the restricted default with 128 forward and 150 reverse rules.
+- Removed runtime GRS parsing and external Grew requirements; predicates, command functions, and execution order are checked-in Python.
+- Preserved sentence/document/corpus and file/directory APIs, original file comments, atomic file output, traces, and rewrite bounds.
+- Retained explicit `target_deprels` as experimental local-alternation compatibility, not as an official SUD implementation or a lossless converter.
+- Kept the existing `0.2.1` tree-manipulation fixes. Complete-conversion verification and packaging comparison are recorded in the development manual.
+- Python 3.14 source suite: 20 tests passed. Full forward PUD and EWT test outputs match official SUD2.18 files byte-for-byte; full reverse regression covers PUD, EWT test, and Chinese-GSDSimp test.
+
+# asymgram 0.2.1
 
 Feature release with expanded treebank manipulation, scheme-conversion, syntax-query, subcorpus, and reporting support.
 

@@ -1,0 +1,113 @@
+strat gya_mSUD_to_SUD_main {
+  Seq (
+    Onf (rm_mwt),
+    Onf (init),
+    Onf (aff),
+    Onf (word),
+    Onf (post_word),
+  )
+}
+
+% MWT are specific to mSUD and not needed in SUD. It actually breaks the Conllu encoding with inconsistent textform
+% We remove them before conversion
+rule rm_mwt {
+  pattern { X[textform]; }
+  commands { del_feat X.textform  }
+}
+
+package init {
+  rule init_mseg {
+    pattern { X[form <> "__0__", !MSeg ] }
+    commands { X.MSeg = X.form }
+  }
+  rule init_gloss {
+    pattern { X[!Gloss, GE ] }
+    commands { X.Gloss = X.GE; del_feat X.GE; }
+  }
+  rule init_mgloss {
+    pattern { X[Gloss, !MGloss ] }
+    commands { X.MGloss = X.Gloss }
+  }
+
+  rule WordAlignmentBegin {
+    pattern { X1 [upos, WordAlignmentEnd]; X2 [upos, !WordAlignmentBegin]; X1 < X2 }
+    commands { X2.WordAlignmentBegin = X1.WordAlignmentEnd }
+  }
+
+  rule WordAlignmentEnd {
+    pattern { X1 [upos, !WordAlignmentEnd]; X2 [upos, WordAlignmentBegin]; X1 < X2 }
+    commands { X1.WordAlignmentEnd = X2.WordAlignmentBegin }
+  }
+}
+
+package aff {
+  rule pref {
+    pattern { X1 [form=re".*-"]|[form="ZERO"]; X2 [form]; X1 < X2 }
+    commands {
+      X2.form = X1.form + X2.form;                      % concatenate the surface form
+      X2.wordform = X1.wordform + X2.wordform;          % concatenate the surface form
+      % del_feat X2.textform;
+      prepend_feats "_" X1 =[re"Translit\|Tone"]=> X2;  % concatenate the surface Translit and Tone
+      prepend_feats "-" X1 =[re"MGloss"]=> X2;
+      prepend_feats X1 =[re"MSeg"]=> X2;
+      shift_out X1 ==> X2;
+      X2.WordAlignmentBegin = X1.WordAlignmentBegin;
+      del_node X1;
+    }
+  }
+
+  rule suff {
+    pattern { X1 [form]; X2 [form=re"-.*"]; X1 < X2 }
+    commands {
+      X1.form = X1.form + X2.form;                      % concatenate the surface form
+      X1.wordform = X1.wordform + X2.wordform;          % concatenate the surface form
+      % del_feat X1.textform;
+      append_feats "_" X2 =[re"Translit\|Tone"]=> X1;   % concatenate the surface Translit and Tone
+      append_feats "-" X2 =[re"MGloss"]=> X1;
+      append_feats X2 =[re"MSeg"]=> X1;
+      shift_out X2 ==> X1;
+      X1.WordAlignmentEnd = X2.WordAlignmentEnd;
+      del_node X2;
+    }
+  }
+}
+
+package word {
+  rule final_word {
+    pattern { X [Word, nWord] }
+    without { X0[nWord]; X0 < X; X0.nWord = X.nWord }
+    without { X1[nWord]; X < X1; X1.nWord = X.nWord }
+    commands { X.form = X.Word; X.wordform = X.Word; del_feat X.Word }
+  }
+
+  rule simple_clitic {
+    pattern {
+      X1 [upos]; X2 [upos, Word]; X3 [form=re"=.*"];
+      X1 < X2; X2 < X3;
+      X1.nWord <> X2.nWord; X2.nWord = X3.nWord; 
+    }
+    commands {
+      X2.form = X2.lemma;
+      del_feat X2.Word
+    }
+  }
+}
+
+
+package post_word {
+  rule H {
+    pattern { X [ form = re".*-H",  wordform = re".*-H"] }
+    commands {
+      X.form = X.form[:-2];
+      X.wordform = X.wordform[:-2];
+    }
+  }
+
+  rule HV {
+    pattern { X [ form = re".*-HV",  wordform = re".*-HV"] }
+    commands {
+      X.form = X.form[:-3];
+      X.wordform = X.wordform[:-3];
+    }
+  }
+}
