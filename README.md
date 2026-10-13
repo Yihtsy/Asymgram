@@ -14,8 +14,6 @@
 
 **Asymgram** stands for **Asymmetrency Grammar**, a syntactic framework under development that is closely related to dependency grammar. The framework is designed to support syntactic annotation, manipulation, and structural analysis of dependency-based linguistic data.
 
-The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers).
-
 The Python package `asymgram` is a small toolkit for working with CoNLL-U dependency treebanks. It wraps parsed CoNLL-U tokens and sentences with convenient object references, provides tree manipulation helpers, evaluates dependency parses, and includes diagnostics for common annotation and format errors.
 
 The package is designed for corpus linguistics, dependency grammar research, Universal Dependencies style treebank work, and quick inspection of parser output.
@@ -30,7 +28,7 @@ The package is designed for corpus linguistics, dependency grammar research, Uni
 - Python rule-based scheme conversion helpers for UD-style function-dependent structures and SUD-style function-head structures.
 - Node- and corpus-level metrics, including dependency distance, directional dependency distance, hierarchy level, tree depth, sentence length, frequency tables, UAS, and LAS.
 - CoNLL-U readers, writers, text reconstruction, CHAT-to-CoNLL-U conversion, XML corpus conversion, and compact CoNLL-U subset formats such as ConLLUB and ConLLUC.
-- Language-specific postprocessing profiles and analysis-sequence helpers for documenting parser/treebank analysis pipelines.
+- Language-specific postprocessing profiles for refining parser and treebank output.
 - Error checking for common CoNLL-U and dependency treebank issues, including invalid IDs, malformed HEAD values, self-loops, cycles, missing roots, multiple roots, invalid UPOS/DEPREL labels, malformed FEATS/DEPS, punctuation mismatches, and suspicious UPOS-DEPREL combinations.
 
 ## Installation
@@ -224,14 +222,34 @@ sentences = ag.add_stanza_syntax(sentences, lang="zh")
 
 profiles = ag.available_postprocess_profiles()
 refined = ag.apply_postprocess_profile(sentences, profile="zh_stanza_default")
-
-sequence = ag.read_analysis_sequence("profiles/zh_ud_gsdsimp_2_18.json")
-comparison = ag.compare_analysis_sequences(sequence, sequence)
 ```
 
 ## Notes
 
 `asymgram` follows the CoNLL-U conventions used by Universal Dependencies, but it is not limited to official UD treebanks. Some diagnostics intentionally return warnings rather than hard errors because many unusual UPOS-DEPREL combinations can be valid in ellipsis, multiword expressions, headless constructions, dates, measurements, names, and language-specific analyses.
+
+## Citation
+
+If you use `asymgram` in academic work, cite the software version you used:
+
+```bibtex
+@software{yih_asymgram_2026,
+  author = {Yih, Tsy},
+  title = {Asymgram},
+  year = {2026},
+  version = {0.2.3},
+  url = {https://github.com/Yihtsy/Asymgram},
+  note = {Python package}
+}
+```
+
+## Logo Design
+
+The Asymgram logo reflects the framework's core idea: the relation between two words can be reversed, so each word may govern the other under a different analytical choice, forming a cycle. The upper arrow draws visual inspiration from the KPL Silver Dragon, while the lower arrow echoes Han Xin's spear and the item Mingdao Siming. On the left, the letter A resembles half of Gongsun Li's tilted umbrella; on the right, the letter G hides Guan Yu's horseshoe.
+
+## Acknowledgements
+
+The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers).
 
 ## License
 
