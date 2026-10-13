@@ -243,13 +243,15 @@ If you use `asymgram` in academic work, cite the software version you used:
 }
 ```
 
-## Logo Design
-
-The Asymgram logo reflects the framework's core idea: the relation between two words can be reversed, so each word may govern the other under a different analytical choice, forming a cycle. The upper arrow draws visual inspiration from the KPL Silver Dragon, while the lower arrow echoes Han Xin's spear and the item Mingdao Siming. On the left, the letter A resembles half of Gongsun Li's tilted umbrella; on the right, the letter G hides Guan Yu's horseshoe.
-
-## Acknowledgements
+## Acknowledgements And Logo Design
 
 The name "AG" is also chosen in honor of the author's favorite esports club: Chengdu AG (All Gamers).
+
+The Asymgram logo reflects the framework's core idea: the relation between two words can be reversed, so each word may govern the other under a different analytical choice, forming a cycle. The upper arrow draws visual inspiration from the KPL Silver Dragon, while the lower arrow echoes Han Xin's spear or Mingdao Siming. On the left, the letter A resembles half of Gongsun Li's tilted umbrella; on the right, the letter G hides Guan Yu's horseshoe.
+
+“AG”这一名称也向作者最喜爱的电竞俱乐部成都AG超玩会（All Gamers）致意。
+
+Asymgram 的 Logo 体现了这一框架的核心思想：两个词之间的关系可以在不同分析选择下互为逆向，因此二者都可能成为支配方，并形成一个循环结构。上方箭头的视觉意象参考了 KPL 银龙杯，下方箭头则呼应韩信的长枪或名刀司命。左侧的字母 A 像半把倾倒的公孙离之伞，右侧的字母 G 中则藏有类似关羽马蹄的形态。
 
 ## License
 
