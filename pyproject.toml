@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asymgram"
-version = "0.2.3"
+version = "0.2.5"
 description = "Utilities for CoNLL-U dependency tree objects, manipulation, evaluation, and error checking."
 license = "MIT"
 readme = "README.md"
@@ -36,7 +36,8 @@ classifiers = [
   "Topic :: Text Processing :: Linguistic"
 ]
 dependencies = [
-  "conllu>=6.0"
+  "conllu>=6.0",
+  "numpy>=1.23"
 ]
 
 [project.optional-dependencies]

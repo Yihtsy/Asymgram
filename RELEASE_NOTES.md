@@ -1,8 +1,13 @@
-# asymgram 0.2.3
+# asymgram 0.2.5
 
-- Consolidated the embedded Python GRS matcher, executor, graph adapter, and UD/SUD conversion runtime into `scheme_changer.py`.
-- Bundled the pinned official UD/SUD `.grs` rules and `.lp` lexicon resources in distribution metadata.
-- Kept compatibility shims for older private-module imports; no Grewpy, OCaml, or external executable is required.
+- Converted `tree_manipulation` from a single module into a package while preserving top-level `asymgram` function imports.
+- Moved parser and language postprocessing into `tree_manipulation.postprocessing`.
+- Removed the experimental analysis-sequence API from the public package.
+- Consolidated general token/sentence queries, structural tree queries, and the syntax-query DSL into `query.py`.
+- Removed the empty or compatibility-only query modules `tree_query.py`, `query_syntax.py`, and `syntax_query.py`.
+- Removed the compatibility-only private modules `grs_execution.py`, `grs_matcher.py`, and `sud_python.py`, plus the duplicated `sud_conversion.py` file wrapper; their implementations now live in `scheme_changer.py`.
+- Kept the bundled official UD/SUD `.grs` rules and `.lp` lexicon resources in distribution metadata.
+- Declared the existing `numpy` runtime dependency in package metadata.
 
 # asymgram 0.2.2
 
@@ -24,7 +29,7 @@ Feature release with expanded treebank manipulation, scheme-conversion, syntax-q
 - Added Python rule-based scheme-conversion APIs: `ud_to_sud()`, `sud_to_ud()`, `convert_ud_to_sud()`, and `convert_sud_to_ud()` for core function-dependent/function-head alternations.
 - Expanded treebank manipulation helpers for non-word line removal, token insertion, empty-node insertion, punctuation normalization, edge-punctuation removal, hyphenated-compound merging, and sentence-sequence merging.
 - Restored and integrated newer local conversion helpers for CHAT, XML corpus input, ConLLUB/ConLLUC output, sentence lookup, and token-position lookup.
-- Added language-specific postprocessing and analysis-sequence APIs: `apply_postprocess_profile()`, `postprocess_zh_stanza()`, `postprocess_zh_tokenized_text()`, `AnalysisSequence`, and related comparison/read/write helpers.
+- Added language-specific postprocessing APIs: `apply_postprocess_profile()`, `postprocess_zh_stanza()`, and `postprocess_zh_tokenized_text()`.
 - Preserved newer CoNLL-U diagnostic reporting with `generate_error_report()` and `generate_summary_report()`, while adding `generate_analysis_report()` as a compatibility alias.
 - Added structural-unit and tree-query APIs developed after `0.1.0`, including catena/component/constituent/phrase/clause iteration and counting.
 

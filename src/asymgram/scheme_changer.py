@@ -1,7 +1,7 @@
 """Dependency annotation scheme helpers and embedded GRS runtime.
 
 The bundled official UD/SUD GRS files are interpreted by the Python runtime
-defined in this module. Compatibility modules re-export these definitions.
+defined in this module.
 """
 
 from __future__ import annotations
@@ -670,12 +670,6 @@ from copy import copy, deepcopy
 from functools import lru_cache
 import re
 
-try:
-    from .grs_matcher import UnsupportedGRS, _literal, _regex_literal
-except ImportError:
-    from grs_matcher import UnsupportedGRS, _literal, _regex_literal
-
-
 class GRSExecutionError(ValueError):
     """Unsupported syntax, invalid command, or rewrite limit reached."""
 
@@ -1297,115 +1291,10 @@ def _sud_sentence_to_ud(sentence, grs_path=None, **kwargs):
     return _convert_sentence(sentence, grs_path, direction='SUD_to_UD', **kwargs)
 
 
-def ud_to_sud(sentence, grs_path=None, *, output_path=None, output_dir=None,
-              recursive=False, overwrite=False, max_steps=10000, trace=None):
-    """Convert AG sentence containers or CoNLL-U files/directories.
-
-    Memory inputs return the corresponding AG type, without mutation.
-    File outputs default to NAME.sud.conllu; directory outputs default to
-    a sibling NAME_sud folder. Paths return a Path or a list of Paths.
-    Directory conversion preserves relative paths and selects .conllu files.
-    Existing destinations require overwrite=True. Batch conversion stops on
-    error; earlier successfully converted files remain available.
-    """
-    return _convert_input(sentence, grs_path, output_path=output_path, output_dir=output_dir,
-                          recursive=recursive, overwrite=overwrite, max_steps=max_steps, trace=trace)
-
-
-def sud_to_ud(sentence, grs_path=None, *, output_path=None, output_dir=None,
-              recursive=False, overwrite=False, max_steps=10000, trace=None):
-    """Apply official SUD-to-UD rules to memory containers or filesystem inputs.
-
-    Defaults are NAME.ud.conllu or a sibling NAME_ud directory. This is a
-    rule-based reverse conversion, not lossless recovery of the original UD.
-    Enhanced dependencies and empty nodes are not reconstructed.
-    """
-    return _convert_input(sentence, grs_path, direction='SUD_to_UD', output_path=output_path,
-                          output_dir=output_dir, recursive=recursive, overwrite=overwrite,
-                          max_steps=max_steps, trace=trace)
-
-
-def _convert_input(sentence, grs_path=None, *, direction='UD_to_SUD', output_path=None,
-                   output_dir=None, recursive=False, overwrite=False, max_steps=10000, trace=None):
-    from .conllu import TokenList, SentenceList, SentenceLists
-    suffix = 'sud' if direction == 'UD_to_SUD' else 'ud'
-    if output_path == '':
-        output_path = None
-    if output_dir == '':
-        output_dir = None
-    options = dict(grs_path=grs_path, direction=direction, max_steps=max_steps, trace=trace)
-    if isinstance(sentence, (TokenList, SentenceList, SentenceLists)):
-        if output_path is not None or output_dir is not None or recursive or overwrite:
-            raise ValueError('Output and directory options apply only to path inputs.')
-        if isinstance(sentence, TokenList):
-            return _convert_sentence(sentence, **options)
-        if isinstance(sentence, SentenceList):
-            return SentenceList([_convert_sentence(s, **options) for s in sentence],
-                                metadata=deepcopy(sentence.metadata))
-        return SentenceLists([_convert_input(document, **options) for document in sentence])
-    if not isinstance(sentence, (str, os.PathLike)):
-        raise TypeError('Expected TokenList, SentenceList, SentenceLists, or a filesystem path.')
-    if trace is not None:
-        raise ValueError('trace is supported for memory inputs only.')
-    source = Path(sentence).expanduser().resolve()
-    if not source.exists():
-        raise FileNotFoundError(f'Input not found: {source}')
-    if source.is_file():
-        if output_dir is not None or recursive:
-            raise ValueError('Use output_path for a single file.')
-        destination = (Path(output_path).expanduser().resolve() if output_path is not None
-                       else source.with_name(source.stem + '.' + suffix + '.conllu'))
-        pairs = [(source, destination)]
-    elif source.is_dir():
-        if output_path is not None:
-            raise ValueError('Use output_dir for a directory.')
-        destination = (Path(output_dir).expanduser().resolve() if output_dir is not None
-                       else source.with_name(source.name + '_' + suffix))
-        if destination == source or source in destination.parents:
-            raise ValueError('Output directory must be outside the input directory.')
-        if destination.exists() and not destination.is_dir():
-            raise ValueError(f'Output directory is not a directory: {destination}')
-        files = sorted(p for p in (source.rglob('*') if recursive else source.iterdir())
-                       if p.is_file() and p.suffix.lower() == '.conllu')
-        pairs = [(path, destination / path.relative_to(source)) for path in files]
-    else:
-        raise ValueError(f'Unsupported input path: {source}')
-    # Validate all destinations before writing any batch output.
-    for path, target in pairs:
-        if path == target or (target.exists() and os.path.samefile(path, target)):
-            raise ValueError('Input and output must be different files.')
-        if target.exists() and not overwrite:
-            raise FileExistsError(f'Output already exists: {target}')
-        if target.exists() and not target.is_file():
-            raise ValueError(f'Output is not a file: {target}')
-        for parent in target.parents:
-            if parent.exists():
-                if not parent.is_dir():
-                    raise ValueError(f'Output parent is not a directory: {parent}')
-                break
-    results = []
-    for path, target in pairs:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        results.append(_convert_path_file(path, target, grs_path=grs_path, direction=direction, max_steps=max_steps))
-    return results[0] if source.is_file() else results
-
-
 @lru_cache(maxsize=8)
 def _load_program(path):
     return parse_grs(path)
 
-"""Dependency annotation scheme conversion helpers."""
-
-from pathlib import Path
-from copy import deepcopy
-from io import StringIO
-from itertools import chain
-import os
-import tempfile
-from typing import Iterable
-
-from .conllu import SentenceList, SentenceLists, TokenList, parse_incr
-from .tree_manipulation import convert_ud_function_dependents, restore_ud_function_dependents
 SUD_CORE_FUNCTION_DEPRELS = ("case",)
 SUD_EXPERIMENTAL_FUNCTION_DEPRELS = ("case", "aux", "aux:pass", "mark", "cop")
 
@@ -1592,47 +1481,7 @@ def _transform(data, direction, targets, in_place, max_steps, trace):
             raise ValueError('max_steps must be a positive integer.')
         result = _convert_sentence(data, direction=direction, max_steps=max_steps, trace=trace)
         if in_place:
-            from .tree_manipulation import _replace_tokenlist_contents
-            return _replace_tokenlist_contents(data, result)
-        return result
-    if isinstance(data, SentenceList):
-        converted = [_transform(s, direction, None, False, max_steps, trace) for s in data]
-        result = SentenceList(converted, deepcopy(data.metadata))
-    else:
-        result = SentenceLists([_transform(s, direction, None, False, max_steps, trace) for s in data])
-    if in_place:
-        data[:] = result
-        return data
-    return result
-
-
-def _convert_file(source, destination, transform):
-    with tempfile.TemporaryDirectory(dir=destination.parent) as directory:
-        temporary = Path(directory) / 'converted.conllu'
-        with source.open(encoding='utf-8') as reader, temporary.open('w', encoding='utf-8', newline='\n') as writer:
-            block = []
-            for line in chain(reader, ('\n',)):
-                if line.strip():
-                    block.append(line.rstrip('\r\n'))
-                    continue
-                if not block:
-                    continue
-                sentence = next(parse_incr(StringIO('\n'.join(block) + '\n\n')))
-                try:
-                    serialized = transform(sentence).serialize()
-                except Exception as exc:
-                    raise RuntimeError(f"Conversion failed at {sentence.metadata.get('sent_id', '<missing>')}: {exc}") from exc
-                comments = [line for line in block if line.startswith('#')]
-                rows = [line for line in serialized.splitlines() if line and not line.startswith('#')]
-                writer.write('\n'.join(comments + rows) + '\n\n')
-                block = []
-        os.replace(temporary, destination)
-    if isinstance(data, TokenList):
-        if type(max_steps) is not int or max_steps < 1:
-            raise ValueError('max_steps must be a positive integer.')
-        result = _convert_sentence(data, direction=direction, max_steps=max_steps, trace=trace)
-        if in_place:
-            from .tree_manipulation import _replace_tokenlist_contents
+            from .tree_manipulation._core import _replace_tokenlist_contents
             return _replace_tokenlist_contents(data, result)
         return result
     if isinstance(data, SentenceList):

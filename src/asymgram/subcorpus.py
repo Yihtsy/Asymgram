@@ -8,8 +8,7 @@ from typing import Any
 
 from .conllu import SentenceList, SentenceLists, Token, TokenList
 from .format_changer import read_conllu
-from .query import iter_sentences
-from .query_syntax import QueryInput, compile_syntax_query, sentence_matches_syntax
+from .query import QueryInput, compile_syntax_query, iter_sentences, sentence_matches_syntax
 
 
 def _copy_sentence(sentence: TokenList) -> TokenList:

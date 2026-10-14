@@ -237,7 +237,7 @@ If you use `asymgram` in academic work, cite the software version you used:
   author = {Yih, Tsy},
   title = {Asymgram},
   year = {2026},
-  version = {0.2.3},
+  version = {0.2.5},
   url = {https://github.com/Yihtsy/Asymgram},
   note = {Python package}
 }

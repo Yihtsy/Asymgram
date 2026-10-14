@@ -7,8 +7,8 @@ from itertools import combinations
 from typing import Any, Iterable, Iterator
 
 from .conllu import Token, TokenList
-from .query import iter_sentences
-from .tree_query import (
+from .query import (
+    iter_sentences,
     catena_head,
     catena_root,
     clause_type_for_node,

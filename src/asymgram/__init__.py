@@ -1,7 +1,7 @@
 __title__ = 'asymmetrencygrammar'
 __author__ = 'Tsy Yih'
 __email__ = 'yihtsy@outlook.com'
-__version__ = '0.2.3'
+__version__ = '0.2.5'
 
 from .scheme_changer import (
     SUD_CORE_FUNCTION_DEPRELS,
@@ -86,7 +86,7 @@ from .metrics import (
     las
 )
 
-from .tree_query import (
+from .query import (
     resolve_token,
     get_root,
     get_head,
@@ -186,7 +186,7 @@ from .query import (
     update_tokens
 )
 
-from .query_syntax import (
+from .query import (
     SyntaxQuery,
     compile_syntax_query,
     match_syntax_tokens,
@@ -229,7 +229,7 @@ from .error_checker import (
     find_id_equals_head_errors
 )
 
-from .postprocessing import (
+from .tree_manipulation import (
     available_postprocess_profiles,
     apply_postprocess_profile,
     diagnose_zh_stanza_candidates,
@@ -240,15 +240,6 @@ from .postprocessing import (
     postprocess_zh_stanza,
     merge_zh_suffix_compounds,
     postprocess_zh_tokenized_text
-)
-
-from .analysis_sequence import (
-    AnalysisLocus,
-    AnalysisSequence,
-    ANALYSIS_LOCI,
-    compare_analysis_sequences,
-    read_analysis_sequence,
-    write_analysis_sequence
 )
 
 __all__ = [
@@ -269,5 +260,4 @@ __all__ = [
     "frequency_table", "form_frequency", "lemma_frequency", "upos_distribution", "deprel_distribution", "upos_deprel_table", "sentence_length", "dependency_distances", "mean_dependency_distance", "tree_depth", "sentence_metrics", "corpus_summary", "sample_sentences",
     "Diagnostic", "check_conllu_text", "check_file", "check_sentence", "check_sentence_list", "generate_error_report", "generate_summary_report", "generate_analysis_report", "exists_error", "find_id_equals_head_errors",
     "available_postprocess_profiles", "apply_postprocess_profile", "diagnose_zh_stanza_candidates", "get_deprel_lexicon", "refine_language_deprels", "refine_zh_deprels", "refine_en_deprels", "postprocess_zh_stanza", "merge_zh_suffix_compounds", "postprocess_zh_tokenized_text",
-    "AnalysisLocus", "AnalysisSequence", "ANALYSIS_LOCI", "compare_analysis_sequences", "read_analysis_sequence", "write_analysis_sequence",
 ]

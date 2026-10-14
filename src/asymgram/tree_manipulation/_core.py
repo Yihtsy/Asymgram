@@ -1,5 +1,5 @@
-from .conllu import Token, TokenList, SentenceList, SentenceLists
-from .constants import CHINESE_COMMA
+from ..conllu import Token, TokenList, SentenceList, SentenceLists
+from ..constants import CHINESE_COMMA
 from copy import deepcopy
 from collections import deque
 from typing import Union

@@ -7,8 +7,8 @@ from copy import deepcopy
 import re
 from typing import Any, Iterable, Mapping
 
-from .conllu import SentenceList, Token, TokenList, parse
-from .tree_manipulation import merge_tokens
+from ..conllu import SentenceList, Token, TokenList, parse
+from ._core import merge_tokens
 
 
 ZH_SUFFIX_CHARS = (
